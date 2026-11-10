@@ -9,7 +9,6 @@ export default defineConfig([
       '**/*.stories.tsx',
       '**/*.test.ts',
       '**/*.test.tsx',
-      '**/app/**',
     ],
   },
 ]);

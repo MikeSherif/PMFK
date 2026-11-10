@@ -21,6 +21,7 @@ export default tseslint.config(
       'playwright-report/**',
       'dist/**',
       'public/mockServiceWorker.js',
+      'next-env.d.ts',
     ],
   },
   js.configs.recommended,

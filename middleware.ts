@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-
-const SESSION_COOKIE = 'pmfk_session';
+import { SESSION_COOKIE } from '@/shared/config';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
