@@ -18,6 +18,13 @@ pnpm dev
 CONNECT (вход): http://localhost:3000/connect/login  
 Storybook: `pnpm storybook`
 
+Демо-вход (OTP `123456`):
+
+- `anna@demo.ru` — просмотр ленты без билета (paywall на интерес, чат и встречи)
+- `ticket@demo.ru` — полный доступ: интерес, мэтч с Марией, чат, статус «Доступ открыт»
+
+`CONNECT_CHAT_ENABLED=false` по умолчанию: чат ходит polling каждые 8 с. WebSocket включается флагом.
+
 ## Скрипты
 
 | Команда | Что делает |
@@ -42,6 +49,8 @@ Storybook: `pnpm storybook`
 Как добавить слайс: папка в нужном слое + `index.ts` с публичным API. Импорт только из `index.ts`.
 
 Как добавить флаг: `src/shared/config/flags.ts` + переменная в `.env.example`.
+
+CONNECT-экраны: `/connect/feed`, `/connect/saved`, `/connect/matches`, `/connect/meetings`, `/connect/profile`, `/connect/ticket`. Бронирование встреч — заглушка (`NEXT_PUBLIC_BOOKING_ENABLED`).
 
 ## Docker
 

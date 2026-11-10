@@ -16,7 +16,7 @@ const buttonVariants = cva(
         link: 'bg-transparent text-accent underline-offset-4 hover:underline',
       },
       size: {
-        sm: 'h-10 rounded-pill px-4 text-sm',
+        sm: 'h-11 min-h-11 rounded-pill px-4 text-sm',
         md: 'h-12 rounded-pill px-6 text-base',
         lg: 'h-14 rounded-pill px-8 text-base',
       },

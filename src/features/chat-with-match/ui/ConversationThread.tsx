@@ -50,6 +50,7 @@ export function ConversationThread({ matchId, emptyTitle }: ConversationThreadPr
   }, [conversation.messages.length]);
 
   const peer = matchQueryResult.data?.peer;
+  const latestInbound = [...conversation.messages].reverse().find((message) => !message.fromMe);
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,6 +124,9 @@ export function ConversationThread({ matchId, emptyTitle }: ConversationThreadPr
           ))
         )}
         <div ref={bottomRef} />
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {latestInbound?.text ?? ''}
+        </p>
       </div>
       {socketNotice ? (
         <p className="text-sm text-peach" role="status" aria-live="polite">

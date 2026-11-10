@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { type ReactNode, useState } from 'react';
 import { Toaster } from 'sonner';
+import { CookieBannerProvider, YandexMetrika } from '@/widgets/cookie-banner';
 import { createQueryClient } from './query-client';
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -12,7 +13,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <NuqsAdapter>
       <QueryClientProvider client={queryClient}>
-        {children}
+        <CookieBannerProvider>
+          {children}
+          <YandexMetrika />
+        </CookieBannerProvider>
         <Toaster theme="dark" position="top-center" />
       </QueryClientProvider>
     </NuqsAdapter>
