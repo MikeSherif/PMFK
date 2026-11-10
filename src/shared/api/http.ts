@@ -1,6 +1,7 @@
 import { env, SESSION_COOKIE } from '@/shared/config';
 import { apiErrorFromResponse, ApiError } from './errors';
 import { emitRateLimit, emitServerError, emitTicketRequired, emitUnauthorized } from './events';
+import { handleMockRequest, isStaticDemoApi, mockResultToResponse } from './mock/handle-request';
 
 const TIMEOUT_MS = 15_000;
 
@@ -23,8 +24,34 @@ function mergeSignals(external: AbortSignal | undefined, timeoutSignal: AbortSig
   return timeoutSignal;
 }
 
+function readBrowserSession() {
+  if (typeof document === 'undefined') {
+    return undefined;
+  }
+  const prefix = `${SESSION_COOKIE}=`;
+  const part = document.cookie.split('; ').find((item) => item.startsWith(prefix));
+  if (!part) {
+    return undefined;
+  }
+  return decodeURIComponent(part.slice(prefix.length));
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const method = options.method ?? 'GET';
+
+  if (isStaticDemoApi()) {
+    const response = mockResultToResponse(
+      handleMockRequest({
+        method,
+        path,
+        body: options.body,
+        token: readBrowserSession(),
+      }),
+    );
+    persistBrowserSession(path.split('?')[0] ?? path, response);
+    return parseResponse<T>(response, options);
+  }
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   const signal = mergeSignals(options.signal, controller.signal);
@@ -43,21 +70,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   try {
     const response = await fetch(`${env.NEXT_PUBLIC_API_URL}${path}`, init);
-    persistBrowserSession(path, response);
-
-    const retryAfter = response.headers.get('Retry-After');
-    const isJson = response.headers.get('content-type')?.includes('application/json');
-    const payload: unknown = isJson ? await response.json() : null;
-
-    if (!response.ok) {
-      const error = apiErrorFromResponse(response.status, payload, retryAfter);
-      if (!options.skipAuthReaction) {
-        reactToError(error);
-      }
-      throw error;
-    }
-
-    return payload as T;
+    persistBrowserSession(path.split('?')[0] ?? path, response);
+    return await parseResponse<T>(response, options);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -69,6 +83,22 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function parseResponse<T>(response: Response, options: RequestOptions): Promise<T> {
+  const retryAfter = response.headers.get('Retry-After');
+  const isJson = response.headers.get('content-type')?.includes('application/json');
+  const payload: unknown = isJson ? await response.json() : null;
+
+  if (!response.ok) {
+    const error = apiErrorFromResponse(response.status, payload, retryAfter);
+    if (!options.skipAuthReaction) {
+      reactToError(error);
+    }
+    throw error;
+  }
+
+  return payload as T;
 }
 
 function cookiePath() {
