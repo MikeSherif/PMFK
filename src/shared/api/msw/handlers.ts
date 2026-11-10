@@ -3,8 +3,13 @@ import {
   clearSession,
   deleteAccount,
   getFeed,
+  getMatch,
   getSaved,
   getViewerByToken,
+  issueWsTicket,
+  listMatches,
+  listMessages,
+  postMessage,
   requestOtp,
   saveProfile,
   sendInterest,
@@ -223,6 +228,66 @@ export const handlers = [
     if (!result.ok) {
       return errorJson(404, 'NOT_FOUND', 'Профиль не найден');
     }
-    return HttpResponse.json({ ok: true });
+    return HttpResponse.json({ ok: true, match: result.match });
+  }),
+
+  http.get(/\/api\/matches$/, ({ cookies }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    return HttpResponse.json({ items: listMatches(viewer.id) });
+  }),
+
+  http.get(/\/api\/matches\/(?<id>[^/]+)$/, ({ cookies, params }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    const match = getMatch(viewer.id, String(params.id ?? ''));
+    if (!match) {
+      return errorJson(404, 'NOT_FOUND', 'Мэтч не найден');
+    }
+    return HttpResponse.json(match);
+  }),
+
+  http.get(/\/api\/matches\/(?<id>[^/]+)\/messages$/, ({ cookies, params, request }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    const cursor = new URL(request.url).searchParams.get('cursor');
+    const id = String(params.id ?? '');
+    const page = cursor ? listMessages(viewer.id, id, cursor) : listMessages(viewer.id, id);
+    if (!page) {
+      return errorJson(404, 'NOT_FOUND', 'Мэтч не найден');
+    }
+    return HttpResponse.json(page);
+  }),
+
+  http.post(/\/api\/matches\/(?<id>[^/]+)\/messages$/, async ({ cookies, params, request }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    const body = (await request.json().catch(() => null)) as { text?: unknown; clientId?: unknown } | null;
+    const text = typeof body?.text === 'string' ? body.text : '';
+    const clientId = typeof body?.clientId === 'string' ? body.clientId : '';
+    const result = postMessage(viewer.id, String(params.id ?? ''), { text, clientId }, viewer.abilities.canChat);
+    if (!result.ok && result.code === 'TICKET_REQUIRED') {
+      return errorJson(403, 'TICKET_REQUIRED', 'Эта возможность доступна по билету с бренд-дейтингом.');
+    }
+    if (!result.ok) {
+      return errorJson(result.code === 'VALIDATION' ? 422 : 404, result.code, 'Не удалось отправить сообщение');
+    }
+    return HttpResponse.json(result.message);
+  }),
+
+  http.post(/\/api\/ws-ticket$/, ({ cookies }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    return HttpResponse.json({ ticket: issueWsTicket(viewer.id) });
   }),
 ];

@@ -4,6 +4,8 @@ import {
   getFeed,
   getSaved,
   getViewerByToken,
+  listMatches,
+  listMessages,
   requestOtp,
   resetMockDb,
   saveProfile,
@@ -114,6 +116,20 @@ describe('mock catalog', () => {
       return;
     }
     expect(sendInterest(free.id, cardId, free.abilities.canSendInterest).code).toBe('TICKET_REQUIRED');
-    expect(sendInterest(paid.id, cardId, paid.abilities.canSendInterest).ok).toBe(true);
+    const sent = sendInterest(paid.id, cardId, paid.abilities.canSendInterest);
+    expect(sent.ok).toBe(true);
+  });
+
+  it('seeds a chat match for the demo ticket account', () => {
+    const paid = login('ticket@demo.ru');
+    const matches = listMatches(paid.id);
+    expect(matches.length).toBeGreaterThan(0);
+    const first = matches[0];
+    expect(first).toBeDefined();
+    if (!first) {
+      return;
+    }
+    const page = listMessages(paid.id, first.id);
+    expect(page?.items.length).toBeGreaterThan(0);
   });
 });

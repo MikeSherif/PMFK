@@ -1,5 +1,7 @@
-import { EmptyState } from '@/shared/ui/empty-state';
+'use client';
+
 import { Heading } from '@/shared/ui/heading';
+import { MatchList } from '@/features/view-matches';
 import { matchesContent } from '../content';
 
 export function ConnectMatchesPage() {
@@ -11,7 +13,7 @@ export function ConnectMatchesPage() {
       </Heading>
       <p className="mt-4 max-w-2xl text-pretty text-text-muted">{matchesContent.description}</p>
       <div className="mt-8">
-        <EmptyState title={matchesContent.emptyTitle} description={matchesContent.emptyDescription} />
+        <MatchList emptyTitle={matchesContent.emptyTitle} emptyDescription={matchesContent.emptyDescription} />
       </div>
     </div>
   );

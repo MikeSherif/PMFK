@@ -1,5 +1,6 @@
 import { DEMO_OTP_CODE, OTP_MAX_ATTEMPTS, OTP_RESEND_SEC, OTP_TTL_SEC } from '@/shared/config';
 import type { CatalogProfileDto, FeedPageDto } from '../dto/catalog';
+import type { MatchDto, MatchPeerDto, MessageDto, MessagesPageDto } from '../dto/match';
 import type { ViewerDto } from '../dto/viewer';
 
 type OtpRecord = {
@@ -18,6 +19,22 @@ type SessionRecord = {
 
 type CatalogRecord = Omit<CatalogProfileDto, 'saved'>;
 
+type MatchRecord = {
+  id: string;
+  userId: string;
+  peer: MatchPeerDto;
+  createdAt: number;
+};
+
+type MessageRecord = {
+  id: string;
+  matchId: string;
+  authorId: string;
+  text: string;
+  createdAt: number;
+  clientId: string;
+};
+
 type MockDb = {
   otps: Map<string, OtpRecord>;
   sessions: Map<string, SessionRecord>;
@@ -26,6 +43,8 @@ type MockDb = {
   saved: Map<string, Set<string>>;
   skipped: Map<string, Set<string>>;
   interests: Map<string, Set<string>>;
+  matches: MatchRecord[];
+  messages: MessageRecord[];
 };
 
 const globalKey = '__pmfkMockDb' as const;
@@ -80,6 +99,8 @@ function createDb(): MockDb {
     saved: new Map(),
     skipped: new Map(),
     interests: new Map(),
+    matches: [],
+    messages: [],
   };
 }
 
@@ -91,6 +112,8 @@ function getDb(): MockDb {
   db.saved ??= new Map();
   db.skipped ??= new Map();
   db.interests ??= new Map();
+  db.matches ??= [];
+  db.messages ??= [];
   return db;
 }
 
@@ -177,6 +200,9 @@ export function verifyOtp(emailRaw: string, code: string) {
   if (!user) {
     user = createDemoViewer(crypto.randomUUID(), email);
     db.users.set(user.id, user);
+  }
+  if (user.abilities.canChat) {
+    ensureDemoMatch(user.id);
   }
   const token = crypto.randomUUID();
   db.sessions.set(token, { token, userId: user.id });
@@ -327,5 +353,145 @@ export function sendInterest(userId: string, profileId: string, canSendInterest:
   }
   userSet(getDb().interests, userId).add(profileId);
   userSet(getDb().skipped, userId).add(profileId);
-  return { ok: true as const };
+  const match = upsertMatch(userId, toPeer(card));
+  return { ok: true as const, match };
+}
+
+function toPeer(card: CatalogRecord): MatchPeerDto {
+  return {
+    id: card.id,
+    fullName: card.fullName,
+    company: card.company,
+    role: card.role,
+  };
+}
+
+function toMatchDto(record: MatchRecord): MatchDto {
+  return {
+    id: record.id,
+    createdAt: new Date(record.createdAt).toISOString(),
+    peer: record.peer,
+  };
+}
+
+function toMessageDto(record: MessageRecord, userId: string): MessageDto {
+  return {
+    id: record.id,
+    matchId: record.matchId,
+    text: record.text,
+    createdAt: new Date(record.createdAt).toISOString(),
+    fromMe: record.authorId === userId,
+    clientId: record.clientId,
+  };
+}
+
+function upsertMatch(userId: string, peer: MatchPeerDto) {
+  const db = getDb();
+  const existing = db.matches.find((item) => item.userId === userId && item.peer.id === peer.id);
+  if (existing) {
+    return toMatchDto(existing);
+  }
+  const record: MatchRecord = {
+    id: `match-${userId}-${peer.id}`,
+    userId,
+    peer,
+    createdAt: Date.now(),
+  };
+  db.matches.push(record);
+  return toMatchDto(record);
+}
+
+function ensureDemoMatch(userId: string) {
+  const db = getDb();
+  if (db.matches.some((item) => item.userId === userId)) {
+    return;
+  }
+  const peer = db.catalog[1];
+  if (!peer) {
+    return;
+  }
+  const match = upsertMatch(userId, toPeer(peer));
+  db.messages.push({
+    id: crypto.randomUUID(),
+    matchId: match.id,
+    authorId: peer.id,
+    text: 'Здравствуйте! Готовы обсудить коллаборацию на форуме.',
+    createdAt: Date.now() - 60_000,
+    clientId: crypto.randomUUID(),
+  });
+}
+
+export function listMatches(userId: string): MatchDto[] {
+  return getDb()
+    .matches.filter((item) => item.userId === userId)
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .map(toMatchDto);
+}
+
+export function getMatch(userId: string, matchId: string) {
+  const record = getDb().matches.find((item) => item.userId === userId && item.id === matchId);
+  return record ? toMatchDto(record) : null;
+}
+
+export function listMessages(userId: string, matchId: string, cursor?: string): MessagesPageDto | null {
+  if (!getMatch(userId, matchId)) {
+    return null;
+  }
+  const all = getDb()
+    .messages.filter((item) => item.matchId === matchId)
+    .sort((a, b) => a.createdAt - b.createdAt);
+  const pageSize = 30;
+  if (!cursor) {
+    const slice = all.slice(-pageSize);
+    const hasOlder = all.length > slice.length;
+    return {
+      items: slice.map((item) => toMessageDto(item, userId)),
+      nextCursor: hasOlder && slice[0] ? slice[0].id : null,
+    };
+  }
+  const index = all.findIndex((item) => item.id === cursor);
+  const older = index === -1 ? all : all.slice(0, index);
+  const slice = older.slice(-pageSize);
+  const hasOlder = older.length > slice.length;
+  return {
+    items: slice.map((item) => toMessageDto(item, userId)),
+    nextCursor: hasOlder && slice[0] ? slice[0].id : null,
+  };
+}
+
+export function postMessage(
+  userId: string,
+  matchId: string,
+  input: { text: string; clientId: string },
+  canChat: boolean,
+) {
+  if (!canChat) {
+    return { ok: false as const, code: 'TICKET_REQUIRED' };
+  }
+  if (!getMatch(userId, matchId)) {
+    return { ok: false as const, code: 'NOT_FOUND' };
+  }
+  const text = input.text.trim();
+  if (text.length < 1 || text.length > 2000) {
+    return { ok: false as const, code: 'VALIDATION' };
+  }
+  const db = getDb();
+  const duplicate = db.messages.find((item) => item.matchId === matchId && item.clientId === input.clientId);
+  if (duplicate) {
+    return { ok: true as const, message: toMessageDto(duplicate, userId) };
+  }
+  const record: MessageRecord = {
+    id: crypto.randomUUID(),
+    matchId,
+    authorId: userId,
+    text,
+    createdAt: Date.now(),
+    clientId: input.clientId,
+  };
+  db.messages.push(record);
+  return { ok: true as const, message: toMessageDto(record, userId) };
+}
+
+export function issueWsTicket(userId: string) {
+  return `ws-${userId}-${crypto.randomUUID()}`;
 }

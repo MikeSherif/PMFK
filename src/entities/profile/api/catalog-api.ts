@@ -1,4 +1,4 @@
-import { http, type CatalogProfileDto, type FeedPageDto } from '@/shared/api';
+import { http, type CatalogProfileDto, type FeedPageDto, type MatchDto } from '@/shared/api';
 
 export function getFeedPage(cursor: string | null) {
   const path = cursor ? `/profiles/feed?cursor=${encodeURIComponent(cursor)}` : '/profiles/feed';
@@ -22,5 +22,5 @@ export function unsaveCatalogProfile(id: string) {
 }
 
 export function sendCatalogInterest(id: string) {
-  return http.post<{ ok: true }>(`/profiles/${id}/interest`);
+  return http.post<{ ok: true; match: MatchDto }>(`/profiles/${id}/interest`);
 }

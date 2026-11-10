@@ -16,5 +16,5 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
   if (!result.ok) {
     return jsonError(404, 'NOT_FOUND', 'Профиль не найден');
   }
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, match: result.match });
 }

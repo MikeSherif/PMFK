@@ -1,8 +1,10 @@
-import { EmptyState } from '@/shared/ui/empty-state';
+'use client';
+
 import { Heading } from '@/shared/ui/heading';
+import { ConversationThread } from '@/features/chat-with-match';
 import { matchesContent } from '../content';
 
-export function ConnectChatPage() {
+export function ConnectChatPage({ matchId }: { matchId: string }) {
   return (
     <div>
       <p className="text-xs tracking-[0.2em] text-peach uppercase">{matchesContent.eyebrow}</p>
@@ -11,7 +13,7 @@ export function ConnectChatPage() {
       </Heading>
       <p className="mt-4 max-w-2xl text-pretty text-text-muted">{matchesContent.chatDescription}</p>
       <div className="mt-8">
-        <EmptyState title={matchesContent.chatEmpty} />
+        <ConversationThread matchId={matchId} emptyTitle={matchesContent.chatEmpty} />
       </div>
     </div>
   );

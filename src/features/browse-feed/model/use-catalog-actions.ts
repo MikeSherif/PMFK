@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { isApiError } from '@/shared/api';
+import { matchKeys } from '@/entities/match';
 import {
   defaultFeedFilters,
   profileKeys,
@@ -120,7 +121,10 @@ export function useCatalogActions() {
         toast.error(isApiError(error) ? error.message : 'Не удалось отправить интерес');
       }
     },
-    onSuccess: () => toast.success(browseFeedCopy.interestToast),
+    onSuccess: () => {
+      toast.success(browseFeedCopy.interestToast);
+      void queryClient.invalidateQueries({ queryKey: matchKeys.all });
+    },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: profileKeys.all });
     },
