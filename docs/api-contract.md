@@ -1,0 +1,69 @@
+# API contract (expected)
+
+????????? ?? ??????? ???. ??? ????????? REST + WS, ??????? ????????? ?????? CONNECT. ??????? URL: `NEXT_PUBLIC_API_URL`. Cookie-??????, `credentials: include`.
+
+??????: `{ "error": { "code": "TICKET_REQUIRED", "message": "...", "fieldErrors": { "email": ["..."] }, "requestId": "..." } }`.
+
+## Auth
+
+| Method | Path | Body | Notes |
+|---|---|---|---|
+| POST | `/auth/otp/request` | `{ email, consentPdn: true, consentVersion }` | 200 `{ expiresInSec }`; 429 retry-after |
+| POST | `/auth/otp/verify` | `{ email, code }` | Set-Cookie; 400 INVALID_CODE; 429 |
+| POST | `/auth/logout` | — | Clear cookie |
+| DELETE | `/auth/account` | `{ confirm: true }` | ???????? ???????? |
+
+## Viewer
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/me` | `{ id, email, profile, ticket, abilities }` |
+
+`abilities`: `{ canSendInterest, canChat, canBook }`.
+
+## Profile
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/me/profile` | ??????? ??????? |
+| PUT | `/me/profile` | upsert; ???????????? ???? ? ?????? `pending` |
+| GET | `/profiles/feed?cursor=` | ???????? ??? ????? |
+| POST | `/profiles/:id/skip` | |
+| POST | `/profiles/:id/save` | |
+| DELETE | `/profiles/:id/save` | |
+| POST | `/profiles/:id/interest` | 403 `TICKET_REQUIRED` ??? ?????? |
+| GET | `/me/saved` | ????-???? |
+
+?????? ???????: `draft | pending | approved | rejected`.
+
+## Matches & chat
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/matches` | ???????? ???????? |
+| GET | `/matches/:id` | |
+| GET | `/matches/:id/messages?cursor=` | infinite, newest last |
+| POST | `/matches/:id/messages` | `{ text, clientId }` |
+
+## Meetings
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/meetings` | v1: ?????? empty, ???? `BOOKING_ENABLED=false` |
+
+## Ticket
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/me/ticket` | `{ status: "none" \| "pending" \| "active", label }` |
+
+## Realtime (???? 6)
+
+`POST /api/ws-ticket` (BFF) ? `{ ticket }`.  
+`wss://…/ws?ticket=` ???????:
+
+```ts
+{ type: 'message.created', payload: MessageDto }
+{ type: 'match.created', payload: MatchDto }
+{ type: 'access.updated', payload: AccessDto }
+```

@@ -1,0 +1,39 @@
+@theme {
+  --color-bg: #100018;
+  --color-bg-elevated: #180028;
+  --color-bg-input: #14001c;
+  --color-surface: rgb(255 255 255 / 5%);
+  --color-border: rgb(255 255 255 / 10%);
+  --color-border-strong: rgb(255 255 255 / 18%);
+  --color-accent: #fc5820;
+  --color-accent-hover: #ff6a33;
+  --color-accent-pressed: #e04c16;
+  --color-glow-purple: #5800e0;
+  --color-glow-coral: #cc403c;
+  --color-peach: #f2b48a;
+  --color-text: #fcfcfc;
+  --color-text-muted: #c9b8d6;
+  --color-demo: #50300c;
+  --color-demo-fg: #f6d7a4;
+  --color-online: #3ddc84;
+  --color-danger: #e5484d;
+  --color-success: #3ddc84;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+
+  --font-display: var(--font-display-family), Arimo, Helvetica, Arial, sans-serif;
+  --font-body: var(--font-body-family), 'Noto Sans', Helvetica, Arial, sans-serif;
+
+  --shadow-cta: 0 8px 32px rgb(252 88 32 / 45%);
+  --container-site: 72.5rem;
+  --gutter-mobile: 1.25rem;
+}
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+}

@@ -1,0 +1,57 @@
+import { createEnv } from '@t3-oss/env-nextjs';
+import { z } from 'zod';
+
+const optionalUrl = z.string().url().optional().or(z.literal(''));
+
+export const env = createEnv({
+  server: {
+    SENTRY_DSN: z.string().optional(),
+  },
+  client: {
+    NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+    NEXT_PUBLIC_API_URL: z.string().url().default('http://localhost:3000/api'),
+    NEXT_PUBLIC_API_MOCKING: z.enum(['enabled', 'disabled']).default('enabled'),
+    NEXT_PUBLIC_DEMO_MODE: z.string().optional(),
+    NEXT_PUBLIC_TICKET_SALES_OPEN: z.string().optional(),
+    NEXT_PUBLIC_SPEAKERS_PUBLISHED: z.string().optional(),
+    NEXT_PUBLIC_PROGRAM_PUBLISHED: z.string().optional(),
+    NEXT_PUBLIC_PARTNERS_PUBLISHED: z.string().optional(),
+    NEXT_PUBLIC_MEDIA_PARTNERS_PUBLISHED: z.string().optional(),
+    NEXT_PUBLIC_ADDRESS_CONFIRMED: z.string().optional(),
+    NEXT_PUBLIC_BOOKING_ENABLED: z.string().optional(),
+    NEXT_PUBLIC_CONNECT_CHAT_ENABLED: z.string().optional(),
+    NEXT_PUBLIC_TICKETS_URL: optionalUrl,
+    NEXT_PUBLIC_PARTNER_MAIL: z.string().email().optional(),
+    NEXT_PUBLIC_PRESS_MAIL: z.string().email().optional(),
+    NEXT_PUBLIC_SPEAKER_MAIL: z.string().email().optional(),
+    NEXT_PUBLIC_ORG_MAIL: z.string().email().optional(),
+    NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+    NEXT_PUBLIC_YANDEX_METRIKA_ID: z.string().optional(),
+    NEXT_PUBLIC_PDN_POLICY_VERSION: z.string().default('2026-11-09'),
+  },
+  runtimeEnv: {
+    SENTRY_DSN: process.env.SENTRY_DSN,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_API_MOCKING: process.env.NEXT_PUBLIC_API_MOCKING,
+    NEXT_PUBLIC_DEMO_MODE: process.env.NEXT_PUBLIC_DEMO_MODE,
+    NEXT_PUBLIC_TICKET_SALES_OPEN: process.env.NEXT_PUBLIC_TICKET_SALES_OPEN,
+    NEXT_PUBLIC_SPEAKERS_PUBLISHED: process.env.NEXT_PUBLIC_SPEAKERS_PUBLISHED,
+    NEXT_PUBLIC_PROGRAM_PUBLISHED: process.env.NEXT_PUBLIC_PROGRAM_PUBLISHED,
+    NEXT_PUBLIC_PARTNERS_PUBLISHED: process.env.NEXT_PUBLIC_PARTNERS_PUBLISHED,
+    NEXT_PUBLIC_MEDIA_PARTNERS_PUBLISHED: process.env.NEXT_PUBLIC_MEDIA_PARTNERS_PUBLISHED,
+    NEXT_PUBLIC_ADDRESS_CONFIRMED: process.env.NEXT_PUBLIC_ADDRESS_CONFIRMED,
+    NEXT_PUBLIC_BOOKING_ENABLED: process.env.NEXT_PUBLIC_BOOKING_ENABLED,
+    NEXT_PUBLIC_CONNECT_CHAT_ENABLED: process.env.NEXT_PUBLIC_CONNECT_CHAT_ENABLED,
+    NEXT_PUBLIC_TICKETS_URL: process.env.NEXT_PUBLIC_TICKETS_URL,
+    NEXT_PUBLIC_PARTNER_MAIL: process.env.NEXT_PUBLIC_PARTNER_MAIL,
+    NEXT_PUBLIC_PRESS_MAIL: process.env.NEXT_PUBLIC_PRESS_MAIL,
+    NEXT_PUBLIC_SPEAKER_MAIL: process.env.NEXT_PUBLIC_SPEAKER_MAIL,
+    NEXT_PUBLIC_ORG_MAIL: process.env.NEXT_PUBLIC_ORG_MAIL,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_YANDEX_METRIKA_ID: process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID,
+    NEXT_PUBLIC_PDN_POLICY_VERSION: process.env.NEXT_PUBLIC_PDN_POLICY_VERSION,
+  },
+  skipValidation: process.env.SKIP_ENV_VALIDATION === '1',
+  emptyStringAsUndefined: true,
+});
