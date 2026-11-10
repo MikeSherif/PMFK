@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next';
 import { env } from '@/shared/config/env';
 import { routes } from '@/shared/config/routes';
 
+export const dynamic = 'force-static';
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = env.NEXT_PUBLIC_APP_URL;
   return [
