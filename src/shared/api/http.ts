@@ -1,4 +1,4 @@
-import { env } from '@/shared/config';
+import { env, SESSION_COOKIE } from '@/shared/config';
 import { apiErrorFromResponse, ApiError } from './errors';
 import { emitRateLimit, emitServerError, emitTicketRequired, emitUnauthorized } from './events';
 
@@ -43,6 +43,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   try {
     const response = await fetch(`${env.NEXT_PUBLIC_API_URL}${path}`, init);
+    persistBrowserSession(path, response);
 
     const retryAfter = response.headers.get('Retry-After');
     const isJson = response.headers.get('content-type')?.includes('application/json');
@@ -67,6 +68,24 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     throw new ApiError({ status: 0, code: 'NETWORK', message: 'Нет соединения. Проверьте сеть.' });
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+function cookiePath() {
+  return env.NEXT_PUBLIC_BASE_PATH || '/';
+}
+
+function persistBrowserSession(path: string, response: Response) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+  if (path === '/auth/logout' && response.ok) {
+    document.cookie = `${SESSION_COOKIE}=; Path=${cookiePath()}; Max-Age=0`;
+    return;
+  }
+  const token = response.headers.get('x-pmfk-session');
+  if (token) {
+    document.cookie = `${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=${cookiePath()}; SameSite=Lax`;
   }
 }
 

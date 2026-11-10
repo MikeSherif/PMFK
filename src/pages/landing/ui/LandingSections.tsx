@@ -131,7 +131,7 @@ export function IdeaSection() {
                   key={msg.text}
                   className={
                     msg.from === 'me'
-                      ? 'ml-8 rounded-pill bg-accent px-4 py-2 text-sm'
+                      ? 'ml-8 rounded-pill bg-accent px-4 py-2 text-sm text-bg'
                       : 'mr-8 rounded-pill bg-surface px-4 py-2 text-sm'
                   }
                 >

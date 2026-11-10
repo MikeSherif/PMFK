@@ -136,7 +136,7 @@ function normalizeEmail(email: string) {
 }
 
 function createDemoViewer(id: string, email: string): ViewerDto {
-  const withTicket = email === 'ticket@demo.ru';
+  const withTicket = email === 'ticket@demo.ru' || email.startsWith('ticket+');
   return {
     id,
     email,

@@ -88,7 +88,10 @@ export const handlers = [
       }
       return errorJson(400, 'INVALID_CODE', result.message ?? 'Неверный код');
     }
-    return HttpResponse.json({ viewer: result.viewer });
+    return HttpResponse.json(
+      { viewer: result.viewer },
+      { headers: { 'x-pmfk-session': result.token } },
+    );
   }),
 
   http.post(/\/api\/auth\/logout$/, ({ cookies }) => {

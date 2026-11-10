@@ -28,7 +28,7 @@ export function LandingPage() {
       <EventJsonLd />
       <a
         href="#hero"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-100 focus:bg-accent focus:px-4 focus:py-2"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-100 focus:bg-accent focus:px-4 focus:py-2 focus:text-bg"
       >
         К содержанию
       </a>

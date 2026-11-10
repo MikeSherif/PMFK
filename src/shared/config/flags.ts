@@ -11,6 +11,7 @@ export const flags = {
   addressConfirmed: boolEnv(env.NEXT_PUBLIC_ADDRESS_CONFIRMED),
   bookingEnabled: boolEnv(env.NEXT_PUBLIC_BOOKING_ENABLED),
   connectChatEnabled: boolEnv(env.NEXT_PUBLIC_CONNECT_CHAT_ENABLED),
+  githubPages: boolEnv(env.NEXT_PUBLIC_GITHUB_PAGES),
 } as const;
 
 export type FeatureFlags = typeof flags;

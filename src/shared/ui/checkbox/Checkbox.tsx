@@ -16,7 +16,7 @@ export function Checkbox({ label, className, id, ...props }: CheckboxProps) {
         className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] border border-border-strong bg-bg-input data-[state=checked]:border-accent data-[state=checked]:bg-accent"
         {...props}
       >
-        <CheckboxPrimitive.Indicator className="text-xs text-text">✓</CheckboxPrimitive.Indicator>
+        <CheckboxPrimitive.Indicator className="text-xs text-bg">✓</CheckboxPrimitive.Indicator>
       </CheckboxPrimitive.Root>
       <span>{label}</span>
     </label>

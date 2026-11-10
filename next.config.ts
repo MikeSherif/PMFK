@@ -1,5 +1,9 @@
 import type { NextConfig } from 'next';
 
+const isGithubPages = process.env.GITHUB_PAGES === 'true';
+const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'PMFK';
+const basePath = isGithubPages ? `/${repositoryName}` : '';
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
@@ -20,21 +24,31 @@ const csp = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  output: isGithubPages ? 'export' : 'standalone',
   reactStrictMode: true,
   poweredByHeader: false,
   typedRoutes: true,
+  trailingSlash: isGithubPages,
   images: {
+    unoptimized: isGithubPages,
     formats: ['image/avif', 'image/webp'],
   },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [...securityHeaders, { key: 'Content-Security-Policy', value: csp }],
-      },
-    ];
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
   },
 };
+
+if (basePath) {
+  nextConfig.basePath = basePath;
+}
+
+if (!isGithubPages) {
+  nextConfig.headers = async () => [
+    {
+      source: '/:path*',
+      headers: [...securityHeaders, { key: 'Content-Security-Policy', value: csp }],
+    },
+  ];
+}
 
 export default nextConfig;

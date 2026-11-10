@@ -10,4 +10,5 @@ export { createWsClient } from './ws-client';
 export type { WsClient, WsConnectionStatus } from './ws-client';
 export { parseWsEvent } from './ws-events';
 export { getWsStatus, publishWsStatus, subscribeWsStatus } from './ws-status';
+export { enableMocking } from './msw/browser';
 export { handlers } from './msw/handlers';

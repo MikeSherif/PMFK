@@ -1,5 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const ciBrowsers = process.env.CI
+  ? [
+      { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+      { name: 'webkit-mobile', use: { ...devices['iPhone 13'] } },
+    ]
+  : [];
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -23,5 +30,6 @@ export default defineConfig({
       name: 'mobile',
       use: { ...devices['iPhone 13'], browserName: 'chromium' },
     },
+    ...ciBrowsers,
   ],
 });

@@ -55,7 +55,7 @@ export function TagGroup({
               className={cn(
                 'rounded-pill border px-3 py-2 text-sm transition-colors',
                 selected
-                  ? 'border-accent bg-accent text-text'
+                  ? 'border-accent bg-accent text-bg'
                   : 'border-border text-text-muted hover:border-border-strong hover:text-text',
               )}
             >

@@ -14,11 +14,11 @@ export function HeroOrbit() {
       </p>
       <article className="glass absolute top-6 right-4 w-52 -rotate-6 rounded-lg p-4">
         <p className="text-[10px] tracking-[0.16em] text-peach uppercase">{idea.kicker}</p>
-        <p className="mt-2 rounded-pill bg-accent px-3 py-2 text-sm font-medium">{idea.title}</p>
+        <p className="mt-2 rounded-pill bg-accent px-3 py-2 text-sm font-medium text-bg">{idea.title}</p>
       </article>
       <article className="glass absolute top-1/2 left-0 w-52 -translate-y-1/2 -rotate-3 rounded-lg p-4">
         <p className="text-[10px] tracking-[0.16em] text-peach uppercase">{contact.kicker}</p>
-        <p className="mt-2 rounded-pill bg-accent px-3 py-2 text-sm font-medium">{contact.title}</p>
+        <p className="mt-2 rounded-pill bg-accent px-3 py-2 text-sm font-medium text-bg">{contact.title}</p>
       </article>
       <article className="glass absolute right-2 bottom-4 w-56 rotate-6 rounded-lg p-4">
         <p className="text-[10px] tracking-[0.16em] text-peach uppercase">{project.kicker}</p>

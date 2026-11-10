@@ -22,6 +22,7 @@ Storybook: `pnpm storybook`
 
 - `anna@demo.ru` — просмотр ленты без билета (paywall на интерес, чат и встречи)
 - `ticket@demo.ru` — полный доступ: интерес, мэтч с Марией, чат, статус «Доступ открыт»
+- любой `ticket+…@demo.ru` — тот же полный доступ (удобно для чистых e2e)
 
 `CONNECT_CHAT_ENABLED=false` по умолчанию: чат ходит polling каждые 8 с. WebSocket включается флагом.
 
@@ -35,6 +36,7 @@ Storybook: `pnpm storybook`
 | `pnpm lint` | ESLint + Steiger |
 | `pnpm test` | Vitest |
 | `pnpm test:e2e` | Playwright (сначала `pnpm exec playwright install chromium`) |
+| `pnpm lhci` | Lighthouse CI по лендингу |
 | `pnpm storybook` | UI kit |
 
 Переменные окружения — `.env.example`. Pre-commit: lefthook (prettier, typecheck, commitlint).
@@ -54,7 +56,7 @@ Storybook: `pnpm storybook`
 
 CONNECT-экраны: `/connect/feed`, `/connect/saved`, `/connect/matches`, `/connect/meetings`, `/connect/profile`, `/connect/ticket`. Бронирование встреч — заглушка (`NEXT_PUBLIC_BOOKING_ENABLED`).
 
-Playwright: Chromium и мобильный viewport iPhone 13 (390 px). Локально `pnpm test:e2e` переиспользует `pnpm dev` на `http://localhost:3000`. Демо-код OTP — `123456`.
+Playwright: локально Chromium и viewport iPhone 13 (390 px); в CI дополнительно Firefox и WebKit. `pnpm test:e2e` переиспользует `pnpm dev` на `http://localhost:3000`. Демо-код OTP — `123456`.
 
 ## Документация
 
@@ -62,6 +64,15 @@ Playwright: Chromium и мобильный viewport iPhone 13 (390 px). Лока
 - `docs/api-contract.md` — ожидаемый REST/WS контракт CONNECT
 - `docs/assumptions.md` и `docs/adr/` — допущения и решения
 - `docs/assets-todo.md` — временные ассеты из PDF
+
+## GitHub Pages
+
+Публичный лендинг деплоится Actions-воркфлоу `.github/workflows/pages.yml` на
+https://mikesherif.github.io/PMFK/ .
+
+GitHub Pages — статический хостинг: BFF и `httpOnly`-cookie там нет. Сборка
+`GITHUB_PAGES=true` делает `output: 'export'`, а CONNECT ходит в браузерный MSW
+с демо-кодом `123456`. Полноценный сервер — Docker `standalone`.
 
 ## Docker
 
