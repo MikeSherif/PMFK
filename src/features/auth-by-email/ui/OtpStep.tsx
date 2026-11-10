@@ -37,7 +37,7 @@ export function OtpStep({
     formState: { errors, isValid },
   } = useForm<OtpStepValues>({
     resolver: zodResolver(otpStepSchema),
-    mode: 'onTouched',
+    mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues: { code: '' },
   });

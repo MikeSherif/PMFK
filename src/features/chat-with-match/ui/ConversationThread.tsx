@@ -9,8 +9,9 @@ import { useForm } from 'react-hook-form';
 import { connectMessages, flags, routes } from '@/shared/config';
 import { useOnlineStatus } from '@/shared/lib';
 import { Button } from '@/shared/ui/button';
+import { ChatBubble } from '@/shared/ui/chat-bubble';
+import { ChatInput } from '@/shared/ui/chat-input';
 import { EmptyState } from '@/shared/ui/empty-state';
-import { Field, Input } from '@/shared/ui/field';
 import { QueryError } from '@/shared/ui/query-error';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { matchQuery } from '@/entities/match';
@@ -93,34 +94,31 @@ export function ConversationThread({ matchId, emptyTitle }: ConversationThreadPr
           <EmptyState title={emptyTitle} />
         ) : (
           conversation.messages.map((message) => (
-            <div
+            <ChatBubble
               key={message.id}
-              className={message.fromMe ? 'ml-8 self-end' : 'mr-8 self-start'}
-            >
-              <p
-                className={
-                  message.fromMe
-                    ? 'rounded-lg bg-accent px-4 py-2 text-text'
-                    : 'rounded-lg bg-surface px-4 py-2'
-                }
-              >
-                {message.text}
-              </p>
-              <p className="mt-1 text-xs text-text-muted">
-                {formatMessageTime(message.createdAt)}
-                {message.status === 'sending' ? ` · ${chatCopy.sending}` : null}
-                {message.status === 'failed' ? ` · ${chatCopy.failed}` : null}
-              </p>
-              {message.status === 'failed' ? (
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => conversation.send(message.text, message.clientId)}
-                >
-                  {chatCopy.retry}
-                </Button>
-              ) : null}
-            </div>
+              fromMe={message.fromMe}
+              text={message.text}
+              meta={[
+                formatMessageTime(message.createdAt),
+                message.status === 'sending' ? chatCopy.sending : null,
+                message.status === 'failed' ? chatCopy.failed : null,
+              ]
+                .filter((part): part is string => Boolean(part))
+                .join(' · ')}
+              {...(message.status === 'failed'
+                ? {
+                    action: (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        onClick={() => conversation.send(message.text, message.clientId)}
+                      >
+                        {chatCopy.retry}
+                      </Button>
+                    ),
+                  }
+                : {})}
+            />
           ))
         )}
         <div ref={bottomRef} />
@@ -139,28 +137,22 @@ export function ConversationThread({ matchId, emptyTitle }: ConversationThreadPr
         </p>
       ) : null}
       <form
-        className="flex flex-col gap-3 sm:flex-row sm:items-end"
         onSubmit={form.handleSubmit((values) => {
           conversation.send(values.text);
           form.reset({ text: '' });
         })}
         noValidate
       >
-        <div className="flex-1">
-          <Field id="message" label={chatCopy.composerLabel} error={form.formState.errors.text?.message ?? ''}>
-            <Input
-              id="message"
-              placeholder={chatCopy.placeholder}
-              autoComplete="off"
-              invalid={Boolean(form.formState.errors.text)}
-              {...form.register('text')}
-              disabled={!online}
-            />
-          </Field>
-        </div>
-        <Button type="submit" loading={conversation.sending} disabled={conversation.sending || !online}>
-          {chatCopy.send}
-        </Button>
+        <ChatInput
+          id="message"
+          label={chatCopy.composerLabel}
+          placeholder={chatCopy.placeholder}
+          sendLabel={chatCopy.send}
+          error={form.formState.errors.text?.message ?? ''}
+          sending={conversation.sending}
+          {...form.register('text')}
+          disabled={!online}
+        />
       </form>
     </div>
   );

@@ -1,5 +1,8 @@
 export { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './accordion';
+export { Avatar } from './avatar';
 export { Badge } from './badge';
+export { ChatBubble } from './chat-bubble';
+export { ChatInput } from './chat-input';
 export { Button } from './button';
 export { Card } from './card';
 export { Checkbox } from './checkbox';

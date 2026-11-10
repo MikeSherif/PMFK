@@ -34,8 +34,10 @@ Storybook: `pnpm storybook`
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint + Steiger |
 | `pnpm test` | Vitest |
-| `pnpm test:e2e` | Playwright |
+| `pnpm test:e2e` | Playwright (сначала `pnpm exec playwright install chromium`) |
 | `pnpm storybook` | UI kit |
+
+Переменные окружения — `.env.example`. Pre-commit: lefthook (prettier, typecheck, commitlint).
 
 ## Структура
 
@@ -51,6 +53,15 @@ Storybook: `pnpm storybook`
 Как добавить флаг: `src/shared/config/flags.ts` + переменная в `.env.example`.
 
 CONNECT-экраны: `/connect/feed`, `/connect/saved`, `/connect/matches`, `/connect/meetings`, `/connect/profile`, `/connect/ticket`. Бронирование встреч — заглушка (`NEXT_PUBLIC_BOOKING_ENABLED`).
+
+Playwright: Chromium и мобильный viewport iPhone 13 (390 px). Локально `pnpm test:e2e` переиспользует `pnpm dev` на `http://localhost:3000`. Демо-код OTP — `123456`.
+
+## Документация
+
+- `docs/design-analysis.md` — карта экранов, токены, пробелы и баги макета
+- `docs/api-contract.md` — ожидаемый REST/WS контракт CONNECT
+- `docs/assumptions.md` и `docs/adr/` — допущения и решения
+- `docs/assets-todo.md` — временные ассеты из PDF
 
 ## Docker
 

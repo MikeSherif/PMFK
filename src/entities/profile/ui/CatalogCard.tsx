@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { Avatar } from '@/shared/ui/avatar';
 import { Badge } from '@/shared/ui/badge';
 import { Card } from '@/shared/ui/card';
 import type { CatalogProfile } from '../model/types';
@@ -24,12 +25,7 @@ export function CatalogCard({
   return (
     <Card className="flex flex-col">
       <div className="flex items-start gap-4">
-        <div
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent/15 font-display text-2xl font-bold text-accent"
-          aria-hidden
-        >
-          {avatarLetter(profile.fullName)}
-        </div>
+        <Avatar letter={avatarLetter(profile.fullName)} />
         <div className="min-w-0">
           {profile.saved && savedLabel ? (
             <Badge tone="peach" className="mb-2">
