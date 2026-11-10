@@ -1,6 +1,7 @@
 import { DEMO_OTP_CODE, OTP_MAX_ATTEMPTS, OTP_RESEND_SEC, OTP_TTL_SEC } from '@/shared/config';
 import type { CatalogProfileDto, FeedPageDto } from '../dto/catalog';
 import type { MatchDto, MatchPeerDto, MessageDto, MessagesPageDto } from '../dto/match';
+import type { MeetingDto } from '../dto/meeting';
 import type { ViewerDto } from '../dto/viewer';
 
 type OtpRecord = {
@@ -35,6 +36,16 @@ type MessageRecord = {
   clientId: string;
 };
 
+type MeetingRecord = {
+  id: string;
+  userId: string;
+  matchId: string;
+  createdAt: number;
+  status: MeetingDto['status'];
+  slotLabel: string | null;
+  peer: MatchPeerDto;
+};
+
 type MockDb = {
   otps: Map<string, OtpRecord>;
   sessions: Map<string, SessionRecord>;
@@ -45,6 +56,7 @@ type MockDb = {
   interests: Map<string, Set<string>>;
   matches: MatchRecord[];
   messages: MessageRecord[];
+  meetings: MeetingRecord[];
 };
 
 const globalKey = '__pmfkMockDb' as const;
@@ -101,6 +113,7 @@ function createDb(): MockDb {
     interests: new Map(),
     matches: [],
     messages: [],
+    meetings: [],
   };
 }
 
@@ -114,6 +127,7 @@ function getDb(): MockDb {
   db.interests ??= new Map();
   db.matches ??= [];
   db.messages ??= [];
+  db.meetings ??= [];
   return db;
 }
 
@@ -494,4 +508,18 @@ export function postMessage(
 
 export function issueWsTicket(userId: string) {
   return `ws-${userId}-${crypto.randomUUID()}`;
+}
+
+export function listMeetings(userId: string): MeetingDto[] {
+  return getDb()
+    .meetings.filter((item) => item.userId === userId)
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .map((item) => ({
+      id: item.id,
+      matchId: item.matchId,
+      createdAt: new Date(item.createdAt).toISOString(),
+      status: item.status,
+      slotLabel: item.slotLabel,
+      peer: { ...item.peer },
+    }));
 }

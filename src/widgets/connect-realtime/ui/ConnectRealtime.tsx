@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { createWsClient, http } from '@/shared/api';
+import { createWsClient, http, publishWsStatus } from '@/shared/api';
 import { env, flags } from '@/shared/config';
 import { bindRealtime } from '../model/bridge';
 
@@ -18,14 +18,18 @@ export function ConnectRealtime() {
 
   useEffect(() => {
     if (!flags.connectChatEnabled) {
+      publishWsStatus('idle');
       return;
     }
     const client = createWsClient({ getUrl: wsUrl });
-    const stop = bindRealtime(client, queryClient);
+    const stopEvents = bindRealtime(client, queryClient);
+    const stopStatus = client.subscribeStatus(publishWsStatus);
     client.connect();
     return () => {
-      stop();
+      stopEvents();
+      stopStatus();
       client.disconnect();
+      publishWsStatus('idle');
     };
   }, [queryClient]);
 

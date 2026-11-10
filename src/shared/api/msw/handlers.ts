@@ -8,6 +8,7 @@ import {
   getViewerByToken,
   issueWsTicket,
   listMatches,
+  listMeetings,
   listMessages,
   postMessage,
   requestOtp,
@@ -289,5 +290,13 @@ export const handlers = [
       return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
     }
     return HttpResponse.json({ ticket: issueWsTicket(viewer.id) });
+  }),
+
+  http.get(/\/api\/meetings$/, ({ cookies }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    return HttpResponse.json({ items: listMeetings(viewer.id) });
   }),
 ];

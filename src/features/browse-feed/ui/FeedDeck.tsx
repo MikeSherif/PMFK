@@ -2,8 +2,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { routes } from '@/shared/config';
+import { connectMessages, routes } from '@/shared/config';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { QueryError } from '@/shared/ui/query-error';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { CatalogCard, feedQuery, profileWord } from '@/entities/profile';
 import { browseFeedCopy } from '../model/content';
@@ -35,6 +36,12 @@ export function FeedDeck({ emptyTitle, emptyDescription }: FeedDeckProps) {
         <div className="mt-6">
           {feedQueryResult.isPending ? (
             <Skeleton className="h-80 w-full" />
+          ) : feedQueryResult.isError && !feedQueryResult.data ? (
+            <QueryError
+              title={connectMessages.loadError}
+              retryLabel={connectMessages.retry}
+              onRetry={() => void feedQueryResult.refetch()}
+            />
           ) : current ? (
             <>
               <CatalogCard

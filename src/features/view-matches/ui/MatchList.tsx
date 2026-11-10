@@ -3,11 +3,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
-import { routes } from '@/shared/config';
+import { connectMessages, routes } from '@/shared/config';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { QueryError } from '@/shared/ui/query-error';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { matchesQuery } from '@/entities/match';
 import { Can } from '@/entities/viewer';
@@ -25,6 +26,16 @@ export function MatchList({ emptyTitle, emptyDescription }: MatchListProps) {
 
   if (query.isPending) {
     return <Skeleton className="h-40 w-full" />;
+  }
+
+  if (query.isError && !query.data) {
+    return (
+      <QueryError
+        title={connectMessages.loadError}
+        retryLabel={connectMessages.retry}
+        onRetry={() => void query.refetch()}
+      />
+    );
   }
 
   if (items.length === 0) {

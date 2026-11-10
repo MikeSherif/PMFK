@@ -11,6 +11,7 @@ export { Heading } from './heading';
 export { Logo } from './logo';
 export { Modal } from './modal';
 export { OtpInput } from './otp-input';
+export { QueryError } from './query-error';
 export { Section, SectionHeader } from './section';
 export { Select } from './select';
 export { Skeleton } from './skeleton';

@@ -4,6 +4,7 @@ export type WsClient = {
   connect: () => void;
   disconnect: () => void;
   subscribe: (type: string, handler: (payload: unknown) => void) => () => void;
+  subscribeStatus: (handler: (status: WsConnectionStatus) => void) => () => void;
   getStatus: () => WsConnectionStatus;
 };
 
@@ -25,6 +26,7 @@ export function createWsClient(options: WsClientOptions): WsClient {
   const baseDelayMs = options.baseDelayMs ?? 1000;
   const jitterMs = options.jitterMs ?? 250;
   const listeners = new Map<string, Set<(payload: unknown) => void>>();
+  const statusListeners = new Set<(status: WsConnectionStatus) => void>();
   let status: WsConnectionStatus = 'idle';
   let socket: WebSocket | null = null;
   let attempts = 0;
@@ -38,6 +40,7 @@ export function createWsClient(options: WsClientOptions): WsClient {
 
   function setStatus(next: WsConnectionStatus) {
     status = next;
+    statusListeners.forEach((handler) => handler(next));
   }
 
   function emit(type: string, payload: unknown) {
@@ -195,6 +198,13 @@ export function createWsClient(options: WsClientOptions): WsClient {
       listeners.set(type, bucket);
       return () => {
         bucket.delete(handler);
+      };
+    },
+    subscribeStatus: (handler) => {
+      statusListeners.add(handler);
+      handler(status);
+      return () => {
+        statusListeners.delete(handler);
       };
     },
     getStatus: () => status,

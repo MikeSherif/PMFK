@@ -1,8 +1,10 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { connectMessages } from '@/shared/config';
 import { Card } from '@/shared/ui/card';
 import { Heading } from '@/shared/ui/heading';
+import { QueryError } from '@/shared/ui/query-error';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { myProfileQuery, profileStatusMeta } from '@/entities/profile';
 import { DeleteAccountButton } from '@/features/delete-account';
@@ -28,6 +30,12 @@ export function ConnectProfilePage() {
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-28 w-full" />
             </div>
+          ) : profileQuery.isError ? (
+            <QueryError
+              title={connectMessages.loadError}
+              retryLabel={connectMessages.retry}
+              onRetry={() => void profileQuery.refetch()}
+            />
           ) : (
             <ProfileForm footer={<DeleteAccountButton />} />
           )}

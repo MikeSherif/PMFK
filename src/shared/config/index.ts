@@ -1,6 +1,7 @@
 export { env } from './env';
 export { flags } from './flags';
 export { links } from './links';
+export { connectMessages } from './messages';
 export { routes } from './routes';
 export {
   DEMO_OTP_CODE,

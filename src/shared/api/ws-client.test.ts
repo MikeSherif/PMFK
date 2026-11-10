@@ -67,6 +67,24 @@ describe('ws client', () => {
     expect(client.getStatus()).toBe('closed');
   });
 
+  it('notifies status subscribers on connect and disconnect', async () => {
+    const client = createWsClient({
+      getUrl: async () => 'ws://test',
+      socket: FakeSocket as unknown as typeof WebSocket,
+    });
+    const statuses: string[] = [];
+    const stop = client.subscribeStatus((status) => statuses.push(status));
+    client.connect();
+    await vi.waitFor(() => {
+      expect(client.getStatus()).toBe('open');
+    });
+    client.disconnect();
+    stop();
+    expect(statuses).toContain('connecting');
+    expect(statuses).toContain('open');
+    expect(statuses).toContain('closed');
+  });
+
   it('reconnects after a drop and closes after max attempts', async () => {
     vi.useFakeTimers();
     const client = createWsClient({

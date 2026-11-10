@@ -1,8 +1,10 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { connectMessages } from '@/shared/config';
 import { Button } from '@/shared/ui/button';
 import { EmptyState } from '@/shared/ui/empty-state';
+import { QueryError } from '@/shared/ui/query-error';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { CatalogCard, savedProfilesQuery } from '@/entities/profile';
 import { Can } from '@/entities/viewer';
@@ -23,6 +25,16 @@ export function SavedList({ emptyTitle, emptyDescription, savedBadge, unsaveLabe
 
   if (savedQuery.isPending) {
     return <Skeleton className="h-64 w-full" />;
+  }
+
+  if (savedQuery.isError && !savedQuery.data) {
+    return (
+      <QueryError
+        title={connectMessages.loadError}
+        retryLabel={connectMessages.retry}
+        onRetry={() => void savedQuery.refetch()}
+      />
+    );
   }
 
   if (items.length === 0) {

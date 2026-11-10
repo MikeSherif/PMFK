@@ -1,6 +1,6 @@
 import { flags } from '@/shared/config';
-import { EmptyState } from '@/shared/ui/empty-state';
 import { Heading } from '@/shared/ui/heading';
+import { MeetingList } from '@/features/view-meetings';
 import { meetingsContent } from '../content';
 
 export function ConnectMeetingsPage() {
@@ -16,7 +16,7 @@ export function ConnectMeetingsPage() {
       )}
       <h2 className="font-display mt-10 text-xl font-bold uppercase">{meetingsContent.listTitle}</h2>
       <div className="mt-4">
-        <EmptyState title={meetingsContent.emptyTitle} />
+        <MeetingList emptyTitle={meetingsContent.emptyTitle} />
       </div>
     </div>
   );

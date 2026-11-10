@@ -2,12 +2,15 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { type ReactNode } from 'react';
+import { connectMessages } from '@/shared/config';
+import { QueryError } from '@/shared/ui/query-error';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { viewerQuery } from '@/entities/viewer';
 import { shellCopy } from '../model/content';
 import { BottomNav } from './BottomNav';
 import { ConnectHeader } from './ConnectHeader';
 import { DemoBanner } from './DemoBanner';
+import { OfflineBanner } from './OfflineBanner';
 import { SidebarNav } from './SidebarNav';
 
 export function ConnectShell({ children }: { children: ReactNode }) {
@@ -23,6 +26,7 @@ export function ConnectShell({ children }: { children: ReactNode }) {
       </a>
       <ConnectHeader showLogout />
       <DemoBanner />
+      <OfflineBanner />
       <div className="flex flex-1">
         <SidebarNav />
         <main id="connect-main" className="min-w-0 flex-1 px-4 py-8 pb-28 md:px-8 lg:pb-10">
@@ -31,6 +35,12 @@ export function ConnectShell({ children }: { children: ReactNode }) {
               <Skeleton className="h-10 w-64" />
               <Skeleton className="h-40 w-full" />
             </div>
+          ) : viewer.isError ? (
+            <QueryError
+              title={connectMessages.loadError}
+              retryLabel={connectMessages.retry}
+              onRetry={() => void viewer.refetch()}
+            />
           ) : (
             children
           )}

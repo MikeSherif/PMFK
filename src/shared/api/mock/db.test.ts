@@ -5,6 +5,7 @@ import {
   getSaved,
   getViewerByToken,
   listMatches,
+  listMeetings,
   listMessages,
   requestOtp,
   resetMockDb,
@@ -131,5 +132,10 @@ describe('mock catalog', () => {
     }
     const page = listMessages(paid.id, first.id);
     expect(page?.items.length).toBeGreaterThan(0);
+  });
+
+  it('returns an empty meetings list until booking is implemented', () => {
+    const paid = login('ticket@demo.ru');
+    expect(listMeetings(paid.id)).toEqual([]);
   });
 });
