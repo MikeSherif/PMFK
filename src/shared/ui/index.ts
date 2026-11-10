@@ -12,4 +12,6 @@ export { Logo } from './logo';
 export { Modal } from './modal';
 export { OtpInput } from './otp-input';
 export { Section, SectionHeader } from './section';
+export { Select } from './select';
 export { Skeleton } from './skeleton';
+export { TagGroup } from './tag-group';

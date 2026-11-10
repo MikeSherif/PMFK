@@ -6,16 +6,28 @@ type ApiListeners = {
 };
 
 let listeners: ApiListeners | null = null;
+let unauthorizedQueued = false;
 
 export function registerApiListeners(next: ApiListeners): () => void {
   listeners = next;
   return () => {
-    listeners = null;
+    if (listeners === next) {
+      listeners = null;
+    }
   };
 }
 
 export function emitUnauthorized() {
-  listeners?.onUnauthorized();
+  if (unauthorizedQueued) {
+    return;
+  }
+  unauthorizedQueued = true;
+  // Defer so React Query can settle the 401 before navigation unmounts the observer.
+  // Sync replace() cancels the in-flight query and remounts it in a tight loop.
+  setTimeout(() => {
+    unauthorizedQueued = false;
+    listeners?.onUnauthorized();
+  }, 0);
 }
 
 export function emitTicketRequired() {

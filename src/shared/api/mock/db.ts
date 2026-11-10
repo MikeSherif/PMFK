@@ -59,7 +59,7 @@ function createDemoViewer(id: string, email: string): ViewerDto {
       offering: 'Контент, комьюнити и организацию промоакций.',
       tags: ['Кросс-промо', 'Совместный продукт', 'HoReCa'],
       catalogConsent: true,
-      publishConsent: true,
+      publishConsent: false,
     },
   };
 }
@@ -143,18 +143,48 @@ export function resetMockDb() {
   g[globalKey] = createDb();
 }
 
-export function updateViewer(userId: string, patch: Partial<ViewerDto['profile']> & { abilities?: ViewerDto['abilities']; ticket?: ViewerDto['ticket'] }) {
+const SUBSTANTIAL_KEYS = ['fullName', 'company', 'role', 'industry', 'lookingFor', 'offering'] as const;
+
+function tagsChanged(current: string[], next: string[]) {
+  if (current.length !== next.length) {
+    return true;
+  }
+  return current.some((tag, index) => tag !== next[index]);
+}
+
+export function updateProfile(userId: string, input: Omit<ViewerDto['profile'], 'status'>) {
   const db = getDb();
   const current = db.users.get(userId);
   if (!current) {
     return null;
   }
+  const substantialChanged =
+    SUBSTANTIAL_KEYS.some((key) => current.profile[key] !== input[key]) ||
+    tagsChanged(current.profile.tags, input.tags);
+  const status =
+    current.profile.status === 'draft' || substantialChanged ? 'pending' : current.profile.status;
   const next: ViewerDto = {
     ...current,
-    abilities: patch.abilities ?? current.abilities,
-    ticket: patch.ticket ?? current.ticket,
-    profile: { ...current.profile, ...patch },
+    profile: { ...input, status },
   };
   db.users.set(userId, next);
   return next;
+}
+
+export function deleteAccount(token: string | undefined) {
+  if (!token) {
+    return false;
+  }
+  const db = getDb();
+  const session = db.sessions.get(token);
+  if (!session) {
+    return false;
+  }
+  db.users.delete(session.userId);
+  for (const [sessionToken, record] of db.sessions) {
+    if (record.userId === session.userId) {
+      db.sessions.delete(sessionToken);
+    }
+  }
+  return true;
 }

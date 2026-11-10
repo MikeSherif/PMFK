@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { ApiFieldErrors } from '@/shared/api/errors';
+import { clearSessionCookie } from './session-cookie';
+
+export function jsonUnauthenticated(message = 'Сессия недействительна') {
+  return clearSessionCookie(jsonError(401, 'UNAUTHENTICATED', message));
+}
 
 export function jsonError(
   status: number,

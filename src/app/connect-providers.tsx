@@ -1,24 +1,26 @@
 'use client';
 
-import type { Route } from 'next';
-import { usePathname, useRouter } from 'next/navigation';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useLayoutEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { registerApiListeners } from '@/shared/api';
 import { routes } from '@/shared/config';
 import { PaywallModal } from '@/widgets/paywall-modal';
 
 export function ConnectProviders({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const [paywallOpen, setPaywallOpen] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     return registerApiListeners({
       onUnauthorized: () => {
-        const current = pathname ?? routes.connect.feed;
+        if (typeof window === 'undefined') {
+          return;
+        }
+        const current = window.location.pathname;
+        if (current.startsWith(routes.connect.login)) {
+          return;
+        }
         const next = current.startsWith('/connect') ? current : routes.connect.feed;
-        router.replace(`${routes.connect.login}?next=${encodeURIComponent(next)}` as Route);
+        window.location.replace(`${routes.connect.login}?next=${encodeURIComponent(next)}`);
       },
       onTicketRequired: () => setPaywallOpen(true),
       onRateLimit: (retryAfterSec) => {
@@ -28,7 +30,7 @@ export function ConnectProviders({ children }: { children: ReactNode }) {
         toast.error('Сервис временно недоступен. Попробуйте позже.');
       },
     });
-  }, [pathname, router]);
+  }, []);
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { clearSession, getViewerByToken, requestOtp, verifyOtp } from '../mock/db';
+import { clearSession, deleteAccount, getViewerByToken, requestOtp, updateProfile, verifyOtp } from '../mock/db';
 
 function errorJson(
   status: number,
@@ -83,5 +83,61 @@ export const handlers = [
       return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
     }
     return HttpResponse.json(viewer);
+  }),
+
+  http.get(/\/api\/me\/profile$/, ({ cookies }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    return HttpResponse.json(viewer.profile);
+  }),
+
+  http.put(/\/api\/me\/profile$/, async ({ cookies, request }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    const body = (await request.json().catch(() => null)) as {
+      fullName?: string;
+      company?: string;
+      role?: string;
+      industry?: string;
+      city?: string;
+      website?: string;
+      lookingFor?: string;
+      offering?: string;
+      tags?: string[];
+      catalogConsent?: boolean;
+      publishConsent?: boolean;
+    } | null;
+    if (!body?.fullName || !body.company || !body.role || !body.industry) {
+      return errorJson(422, 'VALIDATION', 'Проверьте поля формы');
+    }
+    const next = updateProfile(viewer.id, {
+      fullName: body.fullName,
+      company: body.company,
+      role: body.role,
+      industry: body.industry,
+      city: body.city ?? '',
+      website: body.website ?? '',
+      lookingFor: body.lookingFor ?? '',
+      offering: body.offering ?? '',
+      tags: body.tags ?? [],
+      catalogConsent: body.catalogConsent === true,
+      publishConsent: body.publishConsent === true,
+    });
+    return HttpResponse.json(next?.profile);
+  }),
+
+  http.delete(/\/api\/auth\/account$/, async ({ cookies, request }) => {
+    const body = (await request.json().catch(() => null)) as { confirm?: unknown } | null;
+    if (body?.confirm !== true) {
+      return errorJson(422, 'VALIDATION', 'Подтвердите удаление аккаунта');
+    }
+    if (!deleteAccount(cookies.pmfk_session)) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    return HttpResponse.json({ ok: true });
   }),
 ];

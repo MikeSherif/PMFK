@@ -1,4 +1,5 @@
-export type ProfileStatusDto = 'draft' | 'pending' | 'approved' | 'rejected';
+import type { ProfileDto } from './profile';
+
 export type TicketStatusDto = 'none' | 'pending' | 'active';
 
 export type ViewerDto = {
@@ -13,18 +14,5 @@ export type ViewerDto = {
     status: TicketStatusDto;
     label: string;
   };
-  profile: {
-    status: ProfileStatusDto;
-    fullName: string;
-    company: string;
-    role: string;
-    industry: string;
-    city: string;
-    website: string;
-    lookingFor: string;
-    offering: string;
-    tags: string[];
-    catalogConsent: boolean;
-    publishConsent: boolean;
-  };
+  profile: ProfileDto;
 };
