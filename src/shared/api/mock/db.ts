@@ -1,4 +1,5 @@
 import { DEMO_OTP_CODE, OTP_MAX_ATTEMPTS, OTP_RESEND_SEC, OTP_TTL_SEC } from '@/shared/config';
+import type { CatalogProfileDto, FeedPageDto } from '../dto/catalog';
 import type { ViewerDto } from '../dto/viewer';
 
 type OtpRecord = {
@@ -15,26 +16,82 @@ type SessionRecord = {
   userId: string;
 };
 
+type CatalogRecord = Omit<CatalogProfileDto, 'saved'>;
+
 type MockDb = {
   otps: Map<string, OtpRecord>;
   sessions: Map<string, SessionRecord>;
   users: Map<string, ViewerDto>;
+  catalog: CatalogRecord[];
+  saved: Map<string, Set<string>>;
+  skipped: Map<string, Set<string>>;
+  interests: Map<string, Set<string>>;
 };
 
 const globalKey = '__pmfkMockDb' as const;
+
+function seedCatalog(): CatalogRecord[] {
+  return [
+    {
+      id: 'catalog-igor',
+      fullName: 'Игорь Соколов',
+      company: 'FMCG-бренд',
+      role: 'Бренд-директор',
+      industry: 'FMCG',
+      city: 'Москва',
+      lookingFor: 'Коллаборации с HoReCa и ритейлом для запуска лимитированных линейек.',
+      offering: 'Дистрибуцию, продакшн упаковки и совместные промомеханики.',
+      tags: ['FMCG', 'Кросс-промо', 'Ритейл'],
+      about: 'Ищу партнёров с сильной витриной и понятной аудиторией 25–45.',
+    },
+    {
+      id: 'catalog-maria',
+      fullName: 'Мария Левина',
+      company: 'Сеть кофеен',
+      role: 'Руководитель маркетинга',
+      industry: 'HoReCa',
+      city: 'Санкт-Петербург',
+      lookingFor: 'Бренды для сезонных коллабораций и pop-up в кофейнях.',
+      offering: 'Точки контакта с гостями, контент с площадок и дегустации.',
+      tags: ['HoReCa', 'Совместный продукт', 'Креатив'],
+      about: 'Готова тестировать форматы на 3–5 точках до масштабирования.',
+    },
+    {
+      id: 'catalog-dmitry',
+      fullName: 'Дмитрий Орлов',
+      company: 'Ритейл-сеть',
+      role: 'Директор по партнёрствам',
+      industry: 'Ритейл',
+      city: 'Москва',
+      lookingFor: 'Локальные бренды и медиа для совместных полок и контента.',
+      offering: 'Выкладку, CRM-рассылки и доступ к программе лояльности.',
+      tags: ['Ритейл', 'CRM', 'Медиа'],
+      about: 'Интересны пилоты на 4–6 недель с измеримым результатом.',
+    },
+  ];
+}
 
 function createDb(): MockDb {
   return {
     otps: new Map(),
     sessions: new Map(),
     users: new Map(),
+    catalog: seedCatalog(),
+    saved: new Map(),
+    skipped: new Map(),
+    interests: new Map(),
   };
 }
 
 function getDb(): MockDb {
   const g = globalThis as typeof globalThis & { [globalKey]?: MockDb };
   g[globalKey] ??= createDb();
-  return g[globalKey];
+  const db = g[globalKey];
+  db.catalog ??= seedCatalog();
+  db.saved ??= new Map();
+  db.skipped ??= new Map();
+  db.interests ??= new Map();
+  return db;
 }
 
 function normalizeEmail(email: string) {
@@ -42,11 +99,18 @@ function normalizeEmail(email: string) {
 }
 
 function createDemoViewer(id: string, email: string): ViewerDto {
+  const withTicket = email === 'ticket@demo.ru';
   return {
     id,
     email,
-    abilities: { canSendInterest: false, canChat: false, canBook: false },
-    ticket: { status: 'none', label: 'Нет доступа' },
+    abilities: {
+      canSendInterest: withTicket,
+      canChat: withTicket,
+      canBook: withTicket,
+    },
+    ticket: withTicket
+      ? { status: 'active', label: 'Доступ открыт' }
+      : { status: 'none', label: 'Нет доступа' },
     profile: {
       status: 'approved',
       fullName: 'Анна (демо)',
@@ -187,4 +251,81 @@ export function deleteAccount(token: string | undefined) {
     }
   }
   return true;
+}
+
+function userSet(store: Map<string, Set<string>>, userId: string) {
+  const current = store.get(userId) ?? new Set<string>();
+  store.set(userId, current);
+  return current;
+}
+
+function toCatalogDto(card: CatalogRecord, saved: boolean): CatalogProfileDto {
+  return { ...card, saved };
+}
+
+function visibleCatalog(userId: string) {
+  const db = getDb();
+  const skipped = db.skipped.get(userId) ?? new Set<string>();
+  return db.catalog.filter((card) => !skipped.has(card.id));
+}
+
+export function getFeed(userId: string, cursor?: string): FeedPageDto {
+  const db = getDb();
+  const saved = db.saved.get(userId) ?? new Set<string>();
+  const all = visibleCatalog(userId);
+  const pageSize = 20;
+  const offset = cursor ? Number.parseInt(cursor, 10) || 0 : 0;
+  const slice = all.slice(offset, offset + pageSize);
+  const nextOffset = offset + pageSize;
+  return {
+    items: slice.map((card) => toCatalogDto(card, saved.has(card.id))),
+    nextCursor: nextOffset < all.length ? String(nextOffset) : null,
+    total: all.length,
+  };
+}
+
+export function getSaved(userId: string): CatalogProfileDto[] {
+  const db = getDb();
+  const saved = db.saved.get(userId) ?? new Set<string>();
+  return db.catalog.filter((card) => saved.has(card.id)).map((card) => toCatalogDto(card, true));
+}
+
+export function skipProfile(userId: string, profileId: string) {
+  const card = getDb().catalog.find((item) => item.id === profileId);
+  if (!card) {
+    return { ok: false as const, code: 'NOT_FOUND' };
+  }
+  userSet(getDb().skipped, userId).add(profileId);
+  return { ok: true as const };
+}
+
+export function saveProfile(userId: string, profileId: string) {
+  const card = getDb().catalog.find((item) => item.id === profileId);
+  if (!card) {
+    return { ok: false as const, code: 'NOT_FOUND' };
+  }
+  userSet(getDb().saved, userId).add(profileId);
+  return { ok: true as const, profile: toCatalogDto(card, true) };
+}
+
+export function unsaveProfile(userId: string, profileId: string) {
+  const card = getDb().catalog.find((item) => item.id === profileId);
+  if (!card) {
+    return { ok: false as const, code: 'NOT_FOUND' };
+  }
+  userSet(getDb().saved, userId).delete(profileId);
+  return { ok: true as const, profile: toCatalogDto(card, false) };
+}
+
+export function sendInterest(userId: string, profileId: string, canSendInterest: boolean) {
+  if (!canSendInterest) {
+    return { ok: false as const, code: 'TICKET_REQUIRED' };
+  }
+  const card = getDb().catalog.find((item) => item.id === profileId);
+  if (!card) {
+    return { ok: false as const, code: 'NOT_FOUND' };
+  }
+  userSet(getDb().interests, userId).add(profileId);
+  userSet(getDb().skipped, userId).add(profileId);
+  return { ok: true as const };
 }

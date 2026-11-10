@@ -1,5 +1,18 @@
 import { http, HttpResponse } from 'msw';
-import { clearSession, deleteAccount, getViewerByToken, requestOtp, updateProfile, verifyOtp } from '../mock/db';
+import {
+  clearSession,
+  deleteAccount,
+  getFeed,
+  getSaved,
+  getViewerByToken,
+  requestOtp,
+  saveProfile,
+  sendInterest,
+  skipProfile,
+  unsaveProfile,
+  updateProfile,
+  verifyOtp,
+} from '../mock/db';
 
 function errorJson(
   status: number,
@@ -137,6 +150,78 @@ export const handlers = [
     }
     if (!deleteAccount(cookies.pmfk_session)) {
       return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    return HttpResponse.json({ ok: true });
+  }),
+
+  http.get(/\/api\/profiles\/feed$/, ({ cookies, request }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    const cursor = new URL(request.url).searchParams.get('cursor');
+    return HttpResponse.json(cursor ? getFeed(viewer.id, cursor) : getFeed(viewer.id));
+  }),
+
+  http.get(/\/api\/me\/saved$/, ({ cookies }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    return HttpResponse.json({ items: getSaved(viewer.id) });
+  }),
+
+  http.post(/\/api\/profiles\/(?<id>[^/]+)\/skip$/, ({ cookies, params }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    const id = String(params.id ?? '');
+    const result = skipProfile(viewer.id, id);
+    if (!result.ok) {
+      return errorJson(404, 'NOT_FOUND', 'Профиль не найден');
+    }
+    return HttpResponse.json({ ok: true });
+  }),
+
+  http.post(/\/api\/profiles\/(?<id>[^/]+)\/save$/, ({ cookies, params }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    const id = String(params.id ?? '');
+    const result = saveProfile(viewer.id, id);
+    if (!result.ok) {
+      return errorJson(404, 'NOT_FOUND', 'Профиль не найден');
+    }
+    return HttpResponse.json(result.profile);
+  }),
+
+  http.delete(/\/api\/profiles\/(?<id>[^/]+)\/save$/, ({ cookies, params }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    const id = String(params.id ?? '');
+    const result = unsaveProfile(viewer.id, id);
+    if (!result.ok) {
+      return errorJson(404, 'NOT_FOUND', 'Профиль не найден');
+    }
+    return HttpResponse.json(result.profile);
+  }),
+
+  http.post(/\/api\/profiles\/(?<id>[^/]+)\/interest$/, ({ cookies, params }) => {
+    const viewer = getViewerByToken(cookies.pmfk_session);
+    if (!viewer) {
+      return errorJson(401, 'UNAUTHENTICATED', 'Сессия недействительна');
+    }
+    const id = String(params.id ?? '');
+    const result = sendInterest(viewer.id, id, viewer.abilities.canSendInterest);
+    if (!result.ok && result.code === 'TICKET_REQUIRED') {
+      return errorJson(403, 'TICKET_REQUIRED', 'Эта возможность доступна по билету с бренд-дейтингом.');
+    }
+    if (!result.ok) {
+      return errorJson(404, 'NOT_FOUND', 'Профиль не найден');
     }
     return HttpResponse.json({ ok: true });
   }),

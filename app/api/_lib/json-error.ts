@@ -6,6 +6,12 @@ export function jsonUnauthenticated(message = 'Сессия недействит
   return clearSessionCookie(jsonError(401, 'UNAUTHENTICATED', message));
 }
 
+export function jsonTicketRequired(
+  message = 'Эта возможность доступна по билету с бренд-дейтингом.',
+) {
+  return jsonError(403, 'TICKET_REQUIRED', message);
+}
+
 export function jsonError(
   status: number,
   code: string,

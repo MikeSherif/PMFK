@@ -1,5 +1,7 @@
-import { EmptyState } from '@/shared/ui/empty-state';
+'use client';
+
 import { Heading } from '@/shared/ui/heading';
+import { FeedDeck } from '@/features/browse-feed';
 import { feedContent } from '../content';
 
 export function ConnectFeedPage() {
@@ -11,7 +13,7 @@ export function ConnectFeedPage() {
       </Heading>
       <p className="mt-4 max-w-2xl text-pretty text-text-muted">{feedContent.description}</p>
       <div className="mt-8">
-        <EmptyState title={feedContent.emptyTitle} description={feedContent.emptyDescription} />
+        <FeedDeck emptyTitle={feedContent.emptyTitle} emptyDescription={feedContent.emptyDescription} />
       </div>
     </div>
   );

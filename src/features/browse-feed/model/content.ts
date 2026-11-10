@@ -1,0 +1,23 @@
+export const browseFeedCopy = {
+  available: (count: number, word: string) => `Доступно: ${count} ${word}`,
+  savedLink: 'Сохранённые профили',
+  looking: 'Ищу партнёра для',
+  offering: 'Могу предложить',
+  details: 'Подробнее о профиле +',
+  skip: 'Пропустить',
+  save: 'Сохранить',
+  unsave: 'Убрать',
+  interest: 'Хочу познакомиться ↗',
+  savedToast: 'Профиль сохранён в шорт-лист.',
+  unsavedToast: 'Профиль убран из сохранённого.',
+  skippedToast: 'Карточка пропущена.',
+  interestToast: 'Интерес отправлен. Если он будет взаимным, появится мэтч.',
+  howEyebrow: 'Как работает CONNECT',
+  howTitle: 'От запроса к встрече',
+  howSteps: [
+    { n: '01', title: 'Ваш запрос', text: 'Кого ищете для проекта?' },
+    { n: '02', title: 'Взаимный интерес', text: 'Знакомства только при согласии обеих сторон.' },
+    { n: '03', title: 'Встреча в Linda de La', text: 'Согласуйте удобное время на форуме.' },
+  ],
+  terms: 'Условия участия ↗',
+} as const;

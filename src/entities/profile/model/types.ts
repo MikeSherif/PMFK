@@ -1,5 +1,29 @@
 export type ProfileStatus = 'draft' | 'pending' | 'approved' | 'rejected';
 
+export type CatalogProfile = {
+  id: string;
+  fullName: string;
+  company: string;
+  role: string;
+  industry: string;
+  city: string;
+  lookingFor: string;
+  offering: string;
+  tags: string[];
+  about: string;
+  saved: boolean;
+};
+
+export type FeedPage = {
+  items: CatalogProfile[];
+  nextCursor: string | null;
+  total: number;
+};
+
+export type FeedFilters = {
+  cursor: string | null;
+};
+
 export type Profile = {
   status: ProfileStatus;
   fullName: string;

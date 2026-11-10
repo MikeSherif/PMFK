@@ -1,5 +1,7 @@
-import { EmptyState } from '@/shared/ui/empty-state';
+'use client';
+
 import { Heading } from '@/shared/ui/heading';
+import { SavedList } from '@/features/browse-feed';
 import { savedContent } from '../content';
 
 export function ConnectSavedPage() {
@@ -11,7 +13,12 @@ export function ConnectSavedPage() {
       </Heading>
       <p className="mt-4 max-w-2xl text-pretty text-text-muted">{savedContent.description}</p>
       <div className="mt-8">
-        <EmptyState title={savedContent.emptyTitle} description={savedContent.emptyDescription} />
+        <SavedList
+          emptyTitle={savedContent.emptyTitle}
+          emptyDescription={savedContent.emptyDescription}
+          savedBadge={savedContent.savedBadge}
+          unsaveLabel={savedContent.unsave}
+        />
       </div>
     </div>
   );
